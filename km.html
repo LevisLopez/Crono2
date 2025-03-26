@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velocímetro GPS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; background-color: #000; color: #0f0; }
+        canvas { max-width: 300px; margin: 20px auto; display: block; }
+        .container { margin-top: 20px; }
+        button { padding: 10px 20px; font-size: 16px; margin: 5px; cursor: pointer; }
+        #kmTotal { font-size: 20px; }
+        .toggle-color { background-color: #333; color: #fff; border: none; padding: 10px; cursor: pointer; }
+        #speedDisplay { font-size: 50px; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Velocímetro GPS</h2>
+    <canvas id="speedometer"></canvas>
+    <p id="speedDisplay">0 km/h</p>
+    <div class="container">
+        <button onclick="startTracking()">Iniciar</button>
+        <button onclick="stopTracking()">Detener</button>
+        <button onclick="resetKM()">Reiniciar KM</button>
+        <button class="toggle-color" onclick="toggleColor()">Cambiar Color</button>
+        <p>Distancia recorrida: <span id="distance">0</span> km</p>
+        <p>Total acumulado: <span id="kmTotal">0</span> km</p>
+    </div>
+    
+    <script>
+        let kmTotal = parseFloat(localStorage.getItem('kmTotal')) || 0;
+        let prevPosition = null;
+        let watchId = null;
+        let colorState = true; // true: verde, false: azul
+        document.getElementById('kmTotal').innerText = kmTotal.toFixed(2);
+
+        function updateSpeedometer(speed) {
+            document.getElementById('speedDisplay').innerText = speed.toFixed(1) + " km/h";
+            speedometerChart.data.datasets[0].data = [speed, 120 - speed];
+            speedometerChart.update();
+        }
+
+        function startTracking() {
+            if (watchId === null) {
+                watchId = navigator.geolocation.watchPosition(position => {
+                    let { speed, latitude, longitude } = position.coords;
+                    if (speed === null) speed = 0;
+                    updateSpeedometer(speed * 3.6);
+                    
+                    if (prevPosition) {
+                        let distance = calculateDistance(prevPosition.latitude, prevPosition.longitude, latitude, longitude);
+                        kmTotal += distance;
+                        document.getElementById('distance').innerText = distance.toFixed(2);
+                        document.getElementById('kmTotal').innerText = kmTotal.toFixed(2);
+                        localStorage.setItem('kmTotal', kmTotal);
+                    }
+                    prevPosition = { latitude, longitude };
+                }, error => {
+                    alert("Error obteniendo datos de GPS");
+                }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
+            }
+        }
+
+        function stopTracking() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+        }
+        
+        function resetKM() {
+            kmTotal = 0;
+            localStorage.setItem('kmTotal', 0);
+            document.getElementById('kmTotal').innerText = "0";
+            document.getElementById('distance').innerText = "0";
+        }
+        
+        function toggleColor() {
+            colorState = !colorState;
+            document.body.style.color = colorState ? '#0f0' : '#00f';
+        }
+        
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radio de la Tierra en km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function drawSpeedometer() {
+            let ctx = document.getElementById('speedometer').getContext('2d');
+            speedometerChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: ['Velocidad', 'Restante'], datasets: [{ data: [0, 120], backgroundColor: ['#0f0', '#333'] }] },
+                options: { rotation: -90, circumference: 180, cutout: '70%' }
+            });
+        }
+        
+        drawSpeedometer();
+    </script>
+</body>
+</html>
