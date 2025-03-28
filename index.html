@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Velocímetro GPS</title>
+  <!-- Cargamos interact.js desde un CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <h2>Velocímetro GPS</h2>
+  <div class="main-container">
+    <!-- Velocímetro principal -->
+    <div class="speedometer">
+      <div class="speed-arc"></div>
+      <div class="ticks-container">
+        <div class="tick tick0">0</div>
+        <div class="tick tick20">20</div>
+        <div class="tick tick40">40</div>
+        <div class="tick tick60">60</div>
+        <div class="tick tick80">80</div>
+        <div class="tick tick100">100</div>
+        <div class="tick tick120">120</div>
+      </div>
+      <div class="needle" id="needle"></div>
+      <p id="speedDisplay">0 km/h</p>
+    </div>
+
+    <!-- Burbujas flotantes adicionales (draggable) -->
+    <div class="draggable" id="bubbleClock">
+      <span>Hora</span>
+      <span id="clock">--:--:--</span>
+    </div>
+    <div class="draggable" id="bubbleTemp">
+      <span>Temp</span>
+      <span id="tempVal">- °C</span>
+    </div>
+    <div class="draggable" id="bubbleAlt">
+      <span>Alt</span>
+      <span id="altitudeVal">- m</span>
+    </div>
+    <div class="draggable" id="bubbleDist">
+      <span>Dist</span>
+      <span id="distVal">0 km</span>
+    </div>
+    <div class="draggable" id="bubbleTime">
+      <span>Tiempo</span>
+      <span id="timeVal">00:00:00</span>
+    </div>
+
+    <!-- Burbujas inferiores (Acumulado, Promedio) - draggable -->
+    <div class="bottom-bubbles-container">
+      <div class="draggable small-bubble bottom">
+        <span>Acumulado</span>
+        <br><span id="kmTotal">0</span> km
+      </div>
+      <div class="draggable small-bubble bottom">
+        <span>Promedio</span>
+        <br><span id="averageSpeed">0</span> km/h
+      </div>
+    </div>
+
+    <!-- Botones de control -->
+    <div class="btn-row">
+      <button onclick="startTracking()">Iniciar</button>
+      <button onclick="stopTracking()">Detener</button>
+      <button onclick="resetKM()">Reiniciar KM</button>
+      <button onclick="resetSpeed()">Restablecer</button>
+    </div>
+
+    <!-- Historial de reinicio -->
+    <div class="info-container">
+      <h3>Historial de reinicio</h3>
+      <p>Último reinicio: <span id="resetTimestamp">-</span></p>
+      <p>Galones ingresados: <span id="lastGallons">0</span> gal</p>
+      <p>Rendimiento: <span id="fuelEfficiency">0</span> km/gal</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
